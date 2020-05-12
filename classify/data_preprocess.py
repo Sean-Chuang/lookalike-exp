@@ -50,14 +50,15 @@ def preprocess(input_f, emb_1, emb_2):
     print("Diff emb_v1 & emb_v2 ", len(keep_uids_v1 - keep_uids_v2), len(keep_uids_v2 - keep_uids_v1))
     interact_user = keep_uids_v1 & keep_uids_v2
 
-    out_file1 = os.path.join(out_dir, 'emb_v1.vec')
-    out_file2 = os.path.join(out_dir, 'emb_v2.vec')
+    out_file1 = os.path.join(out_dir, os.path.basename(emb_1))
+    out_file2 = os.path.join(out_dir, os.path.basename(emb_2))
     with open(out_file1, 'w') as out_f1, open(out_file2, 'w') as out_f2:
         for uid in tqdm(interact_user):
             out_f1.write(uid + '\t' + emb_v1[uid] + '\n')
             out_f2.write(uid + '\t' + emb_v2[uid] + '\n')
 
     print("Missing user from emb: {}".format(len(user_ids - interact_user)))
+    print("--- Already save vector under [train_data] ---")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("python3 data_preprocess.py")

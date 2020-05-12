@@ -173,12 +173,11 @@ def get_t():
 
 
 if __name__ == "__main__":
-    data_dir = os.path.join(CURRENT_PATH, 'train_data')
     parser = argparse.ArgumentParser("python3 train_lr.py")
     parser.add_argument("input_data", type=str, help="Input data")
     parser.add_argument("result", type=str, help="Result")
-    parser.add_argument("--emb_v1", type=str, default=os.path.join(data_dir, "emb_v1.vec"), help="User emb_v1")
-    parser.add_argument("--emb_v2", type=str, default=os.path.join(data_dir, "emb_v2.vec"), help="User emb_v2")
+    parser.add_argument("emb_v1", type=str, help="User emb_v1")
+    parser.add_argument("emb_v2", type=str, help="User emb_v2")
     args = parser.parse_args()
     print(f"[{get_t()}] reading embdding")
     luf = get_user_vector(args.emb_v1, args.emb_v2)
