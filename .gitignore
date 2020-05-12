@@ -1,5 +1,7 @@
 # Custom define
 classify/train_data/
+classify/result/
+
 
 # Folder view configuration files
 .DS_Store
