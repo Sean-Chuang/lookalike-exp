@@ -57,7 +57,7 @@ def preprocess(input_f, emb_1, emb_2):
             out_f1.write(uid + '\t' + emb_v1[uid])
             out_f2.write(uid + '\t' + emb_v2[uid])
 
-    print("Missing user from emb: {}".formate(len(user_ids - interact_user)))
+    print("Missing user from emb: {}".format(len(user_ids - interact_user)))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("python3 data_preprocess.py")

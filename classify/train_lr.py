@@ -121,7 +121,7 @@ def train(vimp, cv, luf):
 # Apply fitted models to test data
 def test(models, vimp, cv, luf, result):
     dim = 128
-    with open(result, "w") as output_file:
+    with open(os.path.join('result', result), "w") as output_file:
         for cid in cv:
             # Construct training data
             pos = list(set(cv[cid]))
