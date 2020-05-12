@@ -181,7 +181,7 @@ if __name__ == "__main__":
     parser.add_argument("--emb_v2", type=str, default=os.path.join(data_dir, "emb_v2.vec"), help="User emb_v2")
     args = parser.parse_args()
     print(f"[{get_t()}] reading embdding")
-    luf = get_user_vector(args.user_emb_v1, args.user_emb_v2)
+    luf = get_user_vector(args.emb_v1, args.emb_v2)
     print(f"[{get_t()}] reading data")
     vimp1, vimp2, cv1, cv2 = read_data(args.input_data, set(luf.keys()))
     print(f"[{get_t()}] training")
