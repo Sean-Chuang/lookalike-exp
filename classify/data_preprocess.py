@@ -47,6 +47,9 @@ def preprocess(input_f, emb_1, emb_2):
             keep_uids_v2.add(uid)
             emb_v2[uid] = tmp[1]
 
+    print("Total user ids in data :", len(user_ids))
+    print("Miss users in emb_v1 :", len(user_ids - keep_uids_v1))
+    print("Miss users in emb_v2 :", len(user_ids - keep_uids_v2))
     print("Diff emb_v1 & emb_v2 ", len(keep_uids_v1 - keep_uids_v2), len(keep_uids_v2 - keep_uids_v1))
     interact_user = keep_uids_v1 & keep_uids_v2
 
