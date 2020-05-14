@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import glob
 import argparse
 from tqdm import tqdm
 from collections import defaultdict
@@ -41,8 +42,8 @@ def statistic(data_file, out_folder):
         for cid in cids:
             pos = len(cv1[cid])
             neg = len(vimp1[cid])
-            user_ids += (pos + neg)
-            user_interact = len((cv1[cid] + vimp1[cid]) & (cv2[cid] + vimp2[cid]))
+            user_ids += (cv1[cid] | vimp1[cid] | cv2[cid] | vimp2[cid])
+            user_interact = len((cv1[cid] | vimp1[cid]) & (cv2[cid] | vimp2[cid]))
             out_f.write('{}\t{}\t{}\t{}\n'.format(cid, pos, neg, user_interact))
         return user_ids
 
@@ -50,7 +51,7 @@ def statistic(data_file, out_folder):
 def prepare_shrink_data(user_ids, user_events_prefix, out_folder):
     events_file = os.path.join(out_folder, 'user_events.csv')
     user_events = {}
-    file_list = glob.glob(user_events_file + '*')
+    file_list = glob.glob(user_events_prefix + '*')
     for file_name in tqdm(file_list):
         with open(file_name, 'r') as in_f:
             for line in in_f:
