@@ -22,7 +22,7 @@ def get_user_events(user_events_file):
     user_events = {}
     file_list = glob.glob(user_events_file + '*')
     for file_name in tqdm(file_list):
-        with open(file_name) as in_f:
+        with open(file_name, 'r') as in_f:
             for line in in_f:
                 tmp = line.strip().split(" ", 1)
                 uid = tmp[0]
