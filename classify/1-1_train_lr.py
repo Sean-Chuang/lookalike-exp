@@ -151,7 +151,7 @@ def test(models, vimp, cv, user_features, result):
             sc = lr_model.decision_function(test_X)
             ap = average_precision_score(test_y, sc)
             # Print result
-            s_result = "\t".join(map(str, [confusion[0], confusion[3], confusion[1], confusion[2]]))
+            s_result = "\t".join(map(str, [confusion[3], confusion[0], confusion[2], confusion[1]]))
             print(f"{cid}\t{s_result}\t{f1:.6f}\t{ap:.6f}", file=output_file)
 
 
