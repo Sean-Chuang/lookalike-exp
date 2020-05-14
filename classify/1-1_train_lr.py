@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os, sys
+from tqdm import tqdm
 import argparse
 import numpy as np
 from datetime import datetime
@@ -9,7 +10,8 @@ from sklearn.linear_model import LogisticRegression
 
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import f1_score, average_precision_score
+from sklearn.metrics import f1_score, average_precision_score, confusion_matrix
+from sklearn.metrics import classification_report
 
 CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
 
@@ -80,7 +82,7 @@ def read_data(input_data, user_ids):
 # Train LR models
 def train(vimp, cv, user_events):
     models = {}
-    for cid in cv:
+    for cid in tqdm(cv):
         # Construct training data
         pos = list(set(cv[cid]))
         neg = list(set(vimp[cid]))
@@ -94,18 +96,15 @@ def train(vimp, cv, user_events):
 
         train_X, train_y = [], []
         for uid in pos:
-            train_X.append[user_events[uid]]
-            train_y.append(1)
+            train_X.append(user_events[uid])
+            train_y.append('pos')
         for uid in neg:
-            train_X.append[user_events[uid]]
-            train_y.append(0)
-
-        X = vectorizer.fit_transform(train_X)
-        print(X.shape)
+            train_X.append(user_events[uid])
+            train_y.append('neg')
 
         # Set up parameters
         # To follow the convention in spark.ml, C = 1 / (n * lambda)
-        lr_param = {"C": 1.0 / (0.3 * len(y)), "class_weight": "balanced"}
+        lr_param = {"C": 1.0 / (0.3 * len(train_y)), "class_weight": "balanced"}
         # Construct pipelines
         pipe_f = Pipeline([('vect', vectorizer),
                            ('lr', LogisticRegression(**lr_param))])
@@ -120,26 +119,28 @@ def train(vimp, cv, user_events):
 # Apply fitted models to test data
 def test(models, vimp, cv, user_events, result):
     with open(os.path.join('result', result), "w") as output_file:
-        for cid in cv:
+        for cid in tqdm(cv):
             # Construct training data
             pos = list(set(cv[cid]))
             neg = list(set(vimp[cid]))
             test_X, test_y = [], []
             for uid in pos:
-                test_X.append[user_events[uid]]
-                test_y.append(1)
+                test_X.append(user_events[uid])
+                test_y.append('pos')
             for uid in neg:
-                test_X.append[user_events[uid]]
-                test_y.append(0)
+                test_X.append(user_events[uid])
+                test_y.append('neg')
 
             # Load trained models
             pipe = models[cid]
             z = pipe.predict(test_X)
             # Count results
-            result = [np.count_nonzero(test_y * z),
-                        np.count_nonzero((1.0 - test_y) * (1.0 - z)),
-                        np.count_nonzero((1.0 - test_y) * z),
-                        np.count_nonzero(test_y * (1.0 - z))]
+            confusion = confusion_matrix(test_y, z).flatten().tolist()
+            # result = [np.count_nonzero(test_y * z),
+            #             np.count_nonzero((1.0 - test_y) * (1.0 - z)),
+            #             np.count_nonzero((1.0 - test_y) * z),
+            #             np.count_nonzero(test_y * (1.0 - z))]
+
             # Calculate F1
             f1 = f1_score(y_true, z_f)
             # Calculate AP
