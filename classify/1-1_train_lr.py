@@ -29,6 +29,19 @@ def get_user_events(user_events_file):
     return user_events
 
 
+def get_events_features(user_events):
+    vectorizer = TfidfVectorizer(
+                    max_features=20000,
+                    analyzer='word',
+                    sublinear_tf=True
+                )
+    keys = list(user_events.keys())
+    values = list(user_events.values())
+    features = vectorizer.fit_transform(values)
+    result = dict(zip(keys, features))
+    return result
+
+
 # Read data
 def read_data(input_data, user_ids):
     vimp1_raw = {}
@@ -80,7 +93,7 @@ def read_data(input_data, user_ids):
 
                 
 # Train LR models
-def train(vimp, cv, user_events):
+def train(vimp, cv, user_features):
     models = {}
     for cid in tqdm(cv):
         # Construct training data
@@ -88,36 +101,33 @@ def train(vimp, cv, user_events):
         neg = list(set(vimp[cid]))
         
         # Prepare train data
-        vectorizer = TfidfVectorizer(
-                            max_features=20000,
-                            analyzer='word',
-                            sublinear_tf=True
-                        )
 
         train_X, train_y = [], []
         for uid in pos:
-            train_X.append(user_events[uid])
+            train_X.append(user_features[uid])
             train_y.append('pos')
         for uid in neg:
-            train_X.append(user_events[uid])
+            train_X.append(user_features[uid])
             train_y.append('neg')
 
         # Set up parameters
         # To follow the convention in spark.ml, C = 1 / (n * lambda)
-        lr_param = {"C": 1.0 / (0.3 * len(train_y)), "class_weight": "balanced"}
+        lr_param = {
+            "random_stateint": 0
+            "C": 1.0 / (0.3 * len(train_y)), 
+            "class_weight": "balanced"
+        }
         # Construct pipelines
-        pipe_f = Pipeline([('vect', vectorizer),
-                           ('lr', LogisticRegression(**lr_param))])
-
+        lr_model = LogisticRegression(**lr_param)
         # Train them
-        pipe_f.fit(train_X, train_y)
+        lr_model.fit(train_X, train_y)
         # Store them
-        models[cid] = pipe_f
+        models[cid] = lr_model
     return models
 
 
 # Apply fitted models to test data
-def test(models, vimp, cv, user_events, result):
+def test(models, vimp, cv, user_features, result):
     with open(os.path.join('result', result), "w") as output_file:
         for cid in tqdm(cv):
             # Construct training data
@@ -125,29 +135,29 @@ def test(models, vimp, cv, user_events, result):
             neg = list(set(vimp[cid]))
             test_X, test_y = [], []
             for uid in pos:
-                test_X.append(user_events[uid])
+                test_X.append(user_features[uid])
                 test_y.append('pos')
             for uid in neg:
-                test_X.append(user_events[uid])
+                test_X.append(user_features[uid])
                 test_y.append('neg')
 
             # Load trained models
-            pipe = models[cid]
-            z = pipe.predict(test_X)
+            lr_model = models[cid]
+            predict_y = lr_model.predict(test_X)
             # Count results
-            confusion = confusion_matrix(test_y, z).flatten().tolist()
+            confusion = confusion_matrix(test_y, predict_y).flatten().tolist()
             # result = [np.count_nonzero(test_y * z),
             #             np.count_nonzero((1.0 - test_y) * (1.0 - z)),
             #             np.count_nonzero((1.0 - test_y) * z),
             #             np.count_nonzero(test_y * (1.0 - z))]
 
             # Calculate F1
-            f1 = f1_score(y_true, z_f)
+            f1 = f1_score(y_true, predict_y)
             # Calculate AP
-            sc = pipe_f.decision_function(test_X)
+            sc = lr_model.decision_function(test_X)
             ap = average_precision_score(test_y, sc)
             # Print result
-            s_result = "\t".join([str(r) for r in result])
+            s_result = "\t".join([str(r) for r in confusion])
             print(f"{cid}\t{s_result}\t{f1:.6f}\t{ap:.6f}", file=output_file)
 
 
@@ -164,11 +174,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print(f"[{get_t()}] reading user events")
     user_events = get_user_events(args.user_events)
+    print(f"[{get_t()}] transform to user features")
+    user_features = get_events_features(user_events)
     print(f"[{get_t()}] reading data")
-    vimp1, vimp2, cv1, cv2 = read_data(args.input_data, set(user_events.keys()))
+    vimp1, vimp2, cv1, cv2 = read_data(args.input_data, set(user_features.keys()))
     print(f"[{get_t()}] training")
-    models = train(vimp1, cv1, user_events)
+    models = train(vimp1, cv1, user_features)
     print(f"[{get_t()}] test")
-    test(models, vimp2, cv2, user_events, args.result)
+    test(models, vimp2, cv2, user_features, args.result)
     print(f"[{get_t()}] done")
 
