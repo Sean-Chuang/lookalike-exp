@@ -34,7 +34,7 @@ def statistic(data_file, out_folder):
 
         # Just in case
         cids = set(vimp1_raw) & set(vimp2_raw) & set(cv1_raw) & set(cv2_raw)
-        out_f.write("Total valid campaign #IDs : ", len(cids) + "\n")
+        out_f.write("Total valid campaign #IDs : {} \n".format(len(cids)))
         out_f.write("\n")
         out_f.write("CampaignID\t#Positive\t#Negitive\t#Interact_User\n")
         user_ids = set()
