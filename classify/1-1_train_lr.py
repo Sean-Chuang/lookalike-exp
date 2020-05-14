@@ -7,7 +7,7 @@ import numpy as np
 import pickle
 from datetime import datetime
 
-from scipy.sparse import csr_matrix
+from scipy.sparse import lil_matrix
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 
@@ -84,7 +84,7 @@ def read_data(input_data, user_ids):
                 
 # Train LR models
 def train(vimp, cv, user_features):
-    dim = user_features.shape[1]
+    dim = next(iter(user_features.values())).shape[1]
     models = {}
     for cid in tqdm(cv):
         # Construct training data
@@ -92,7 +92,7 @@ def train(vimp, cv, user_features):
         neg = list(set(vimp[cid]))
         
         # Prepare train data
-        train_X = csr_matrix((len(pos) + len(neg), dim))
+        train_X = lil_matrix((len(pos) + len(neg), dim))
         train_y = np.zeros(len(pos) + len(neg))
 
         train_y[:len(pos)] = 1.0
@@ -119,14 +119,14 @@ def train(vimp, cv, user_features):
 
 # Apply fitted models to test data
 def test(models, vimp, cv, user_features, result):
-    dim = user_features.shape[1]
+    dim = next(iter(user_features.values())).shape[1]
     with open(os.path.join('result', result), "w") as output_file:
         for cid in tqdm(cv):
             # Construct training data
             pos = list(set(cv[cid]))
             neg = list(set(vimp[cid]))
             # Prepare test data
-            test_X = csr_matrix((len(pos) + len(neg), dim))
+            test_X = lil_matrix((len(pos) + len(neg), dim))
             test_y = np.zeros(len(pos) + len(neg))
 
             test_y[:len(pos)] = 1.0
@@ -146,7 +146,7 @@ def test(models, vimp, cv, user_features, result):
             #             np.count_nonzero(test_y * (1.0 - z))]
 
             # Calculate F1
-            f1 = f1_score(y_true, predict_y)
+            f1 = f1_score(test_y, predict_y)
             # Calculate AP
             sc = lr_model.decision_function(test_X)
             ap = average_precision_score(test_y, sc)
