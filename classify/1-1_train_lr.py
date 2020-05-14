@@ -3,6 +3,7 @@ import os, sys
 from tqdm import tqdm
 import argparse
 import numpy as np
+import pickle
 from datetime import datetime
 
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -27,19 +28,6 @@ def get_user_events(user_events_file):
             user_events[uid] = events
 
     return user_events
-
-
-def get_events_features(user_events):
-    vectorizer = TfidfVectorizer(
-                    max_features=20000,
-                    analyzer='word',
-                    sublinear_tf=True
-                )
-    keys = list(user_events.keys())
-    values = list(user_events.values())
-    features = vectorizer.fit_transform(values)
-    result = dict(zip(keys, features))
-    return result
 
 
 # Read data
@@ -113,7 +101,7 @@ def train(vimp, cv, user_features):
         # Set up parameters
         # To follow the convention in spark.ml, C = 1 / (n * lambda)
         lr_param = {
-            "random_stateint": 0
+            "random_state": 0,
             "C": 1.0 / (0.3 * len(train_y)), 
             "class_weight": "balanced"
         }
@@ -157,7 +145,7 @@ def test(models, vimp, cv, user_features, result):
             sc = lr_model.decision_function(test_X)
             ap = average_precision_score(test_y, sc)
             # Print result
-            s_result = "\t".join([str(r) for r in confusion])
+            s_result = "\t".join(map(str, [confusion[0], confusion[3], confusion[1], confusion[2]]))
             print(f"{cid}\t{s_result}\t{f1:.6f}\t{ap:.6f}", file=output_file)
 
 
@@ -171,11 +159,13 @@ if __name__ == "__main__":
     parser.add_argument("input_data", type=str, help="Input data")
     parser.add_argument("result", type=str, help="Result")
     parser.add_argument("user_events", type=str, help="User history events")
+    parser.add_argument("user_features_pickle", type=str, help="User features pickle file")
     args = parser.parse_args()
     print(f"[{get_t()}] reading user events")
     user_events = get_user_events(args.user_events)
-    print(f"[{get_t()}] transform to user features")
-    user_features = get_events_features(user_events)
+    print(f"[{get_t()}] extract user features")
+    with open(args.user_features_pickle, 'rb') as handle:
+        user_features = pickle.load(handle)
     print(f"[{get_t()}] reading data")
     vimp1, vimp2, cv1, cv2 = read_data(args.input_data, set(user_features.keys()))
     print(f"[{get_t()}] training")

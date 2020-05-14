@@ -4,6 +4,8 @@ import glob
 import argparse
 from tqdm import tqdm
 from collections import defaultdict
+from sklearn.feature_extraction.text import TfidfVectorizer
+import pickle
 
 CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
 
@@ -65,6 +67,23 @@ def prepare_shrink_data(user_ids, user_events_prefix, out_folder):
         for uid in user_events:
             out_f.write(uid + '\t' + user_events[uid] + '\n')
 
+    return user_events
+
+
+def get_events_features(user_events, out_folder):
+    vectorizer = TfidfVectorizer(
+                    max_features=20000,
+                    analyzer='word',
+                    sublinear_tf=True
+                )
+    keys = list(user_events.keys())
+    values = list(user_events.values())
+    features = vectorizer.fit_transform(values)
+    result = dict(zip(keys, features))
+    with open(os.path.join(out_folder, 'features.pickle'), 'wb') as handle:
+        pickle.dump(result, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    with open(os.path.join(out_folder, 'vectorizer.pickle'), 'wb') as handle:
+        pickle.dump(vectorizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
 if __name__ == '__main__':
@@ -82,6 +101,8 @@ if __name__ == '__main__':
     # Prepare statistic file
     user_ids = statistic(args.input_data, out_folder)
     # Prepare user_events / user_emb file
-    prepare_shrink_data(user_ids, args.user_events_prefix, out_folder)
+    user_events = prepare_shrink_data(user_ids, args.user_events_prefix, out_folder)
+    # Prepare tfidf features
+    get_events_features(user_events, out_folder)
 
 
