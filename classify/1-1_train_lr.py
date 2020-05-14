@@ -92,11 +92,11 @@ def train(vimp, cv, user_features):
 
         train_X, train_y = [], []
         for uid in pos:
-            train_X.append(user_features[uid])
-            train_y.append('pos')
+            train_X.append(user_features[uid].toarray())
+            train_y.append(1)
         for uid in neg:
-            train_X.append(user_features[uid])
-            train_y.append('neg')
+            train_X.append(user_features[uid].toarray())
+            train_y.append(0)
         train_X = np.array(train_X)
         train_y = np.array(train_y)
         # Set up parameters
@@ -124,11 +124,11 @@ def test(models, vimp, cv, user_features, result):
             neg = list(set(vimp[cid]))
             test_X, test_y = [], []
             for uid in pos:
-                test_X.append(user_features[uid])
-                test_y.append('pos')
+                test_X.append(user_features[uid].toarray())
+                test_y.append(1)
             for uid in neg:
-                test_X.append(user_features[uid])
-                test_y.append('neg')
+                test_X.append(user_features[uid].toarray())
+                test_y.append(0)
             test_X = np.array(test_X)
             test_y = np.array(test_y)
 

@@ -6,6 +6,7 @@ from tqdm import tqdm
 from collections import defaultdict
 from sklearn.feature_extraction.text import TfidfVectorizer
 import pickle
+import numpy as np
 
 CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
 
@@ -74,12 +75,15 @@ def get_events_features(user_events, out_folder):
     vectorizer = TfidfVectorizer(
                     max_features=20000,
                     analyzer='word',
-                    sublinear_tf=True
+                    sublinear_tf=True,
+                    dtype=np.float32
                 )
     keys = list(user_events.keys())
     values = list(user_events.values())
     features = vectorizer.fit_transform(values)
-    result = dict(zip(keys, features))
+    result = {}
+    for idx, key in enumerate(keys):
+        result[key] = features[idx]
     with open(os.path.join(out_folder, 'features.pickle'), 'wb') as handle:
         pickle.dump(result, handle, protocol=pickle.HIGHEST_PROTOCOL)
     with open(os.path.join(out_folder, 'vectorizer.pickle'), 'wb') as handle:
