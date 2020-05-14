@@ -97,7 +97,8 @@ def train(vimp, cv, user_features):
         for uid in neg:
             train_X.append(user_features[uid])
             train_y.append('neg')
-
+        train_X = np.array(train_X)
+        train_y = np.array(train_y)
         # Set up parameters
         # To follow the convention in spark.ml, C = 1 / (n * lambda)
         lr_param = {
@@ -128,6 +129,8 @@ def test(models, vimp, cv, user_features, result):
             for uid in neg:
                 test_X.append(user_features[uid])
                 test_y.append('neg')
+            test_X = np.array(test_X)
+            test_y = np.array(test_y)
 
             # Load trained models
             lr_model = models[cid]
