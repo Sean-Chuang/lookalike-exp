@@ -44,7 +44,7 @@ def statistic(data_file, out_folder):
         for cid in cids:
             pos = len(cv1[cid])
             neg = len(vimp1[cid])
-            user_ids += (cv1[cid] | vimp1[cid] | cv2[cid] | vimp2[cid])
+            user_ids |= (cv1[cid] | vimp1[cid] | cv2[cid] | vimp2[cid])
             user_interact = len((cv1[cid] | vimp1[cid]) & (cv2[cid] | vimp2[cid]))
             out_f.write('{}\t{}\t{}\t{}\n'.format(cid, pos, neg, user_interact))
         return user_ids
