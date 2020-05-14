@@ -18,7 +18,7 @@ def get_user_events(user_events_prefix):
     return user_events
 
 
-def calculate_idf(vocab_path, total_doc):
+def calculate_idf(vocab_path):
     # read vocabulary
     raw_v = []
     n_total = 0
@@ -41,8 +41,10 @@ def calculate_idf(vocab_path, total_doc):
     voc = [raw_v[i][0] for i in range(N)]
     frq = [raw_v[i][1] for i in range(N)]
     frq = np.array(frq, dtype=np.float32)
+    # find n_max
+    n_max = np.max(frq)
     # convert frq to idf
-    idf = np.log((1+total_doc) / (1 + frq))
+    idf = np.log((1 + n_max) / (1 + frq))
     # return vocabulary and stats
     return dict(zip(voc, idf))
     
@@ -62,11 +64,11 @@ def fetch_embedding(idf_map, events_vec, user_events, output_file):
     with open(output_file, 'w') as out_f:
         for user in tqdm(user_events):
             events = user_events[user].split(' ')
-            total_w = sum([idf_map[e] for e in events])
-            events = np.array([events_vec[e] * idf_map[e] / total_w for e in events])
+            total_w = sum([idf_map[e] for e in events if e in events_vec])
+            events = np.array([events_vec[e] * idf_map[e] / total_w for e in events if e in events_vec])
             vector = np.mean(events, 0)
             vector_str = [str(i) + ':' + f'{v:.3f}' for i,v in enumerate(vector)]
-            out_f.write(user_id + '\t' + ' '.join(vector_str) + '\n')
+            out_f.write(user + '\t' + ' '.join(vector_str) + '\n')
 
 
 if __name__ == '__main__':
@@ -79,7 +81,7 @@ if __name__ == '__main__':
     print('1. Get user events')
     user_events = get_user_events(args.data_prefix)
     print('2. Get events idf')
-    idf_map = calculate_idf(args.vocab_freq, len(user_events))
+    idf_map = calculate_idf(args.vocab_freq)
     print('3. Get events embedding')
     events_vec = read_event_emb(args.model_vec)
     print('4. Get user embedding')
