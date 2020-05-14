@@ -51,8 +51,8 @@ def statistic(data_file, out_folder):
         return user_ids
 
 
-def prepare_shrink_data(user_ids, user_events_prefix, out_folder):
-    events_file = os.path.join(out_folder, 'user_events.csv')
+def prepare_shrink_data(user_ids, user_events_prefix, out_folder, out_file_prefix):
+    events_file = os.path.join(out_folder, out_file_prefix + 'user_events.csv')
     user_events = {}
     file_list = glob.glob(user_events_prefix + '*')
     for file_name in tqdm(file_list):
@@ -71,7 +71,7 @@ def prepare_shrink_data(user_ids, user_events_prefix, out_folder):
     return user_events
 
 
-def get_events_features(user_events, out_folder):
+def get_events_features(user_events, out_folder, out_file_prefix):
     vectorizer = TfidfVectorizer(
                     max_features=20000,
                     analyzer='word',
@@ -84,9 +84,9 @@ def get_events_features(user_events, out_folder):
     result = {}
     for idx, key in enumerate(keys):
         result[key] = features[idx]
-    with open(os.path.join(out_folder, 'features.pickle'), 'wb') as handle:
+    with open(os.path.join(out_folder, out_file_prefix + 'features.pickle'), 'wb') as handle:
         pickle.dump(result, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    with open(os.path.join(out_folder, 'vectorizer.pickle'), 'wb') as handle:
+    with open(os.path.join(out_folder, out_file_prefix + 'vectorizer.pickle'), 'wb') as handle:
         pickle.dump(vectorizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
@@ -95,18 +95,19 @@ if __name__ == '__main__':
     parser.add_argument("input_data", type=str, help="Input data")
     parser.add_argument("data_name", type=str, help="Data name (output folder name)")
     parser.add_argument("user_events_prefix", type=str, help="User events file prefix")
+    parser.add_argument("--file_prefix", type=str, help="output file prefix", default=None)
     # parser.add_argument("--user_emb", type=str, default=None)
     args = parser.parse_args()
 
     # Create output folder
     out_folder = os.path.join(CURRENT_PATH, 'train_data', args.data_name)
     os.makedirs(out_folder, exist_ok=True)
-
+    file_prefix = args.file_prefix + '_' if args.file_prefix else ''
     # Prepare statistic file
     user_ids = statistic(args.input_data, out_folder)
     # Prepare user_events / user_emb file
-    user_events = prepare_shrink_data(user_ids, args.user_events_prefix, out_folder)
+    user_events = prepare_shrink_data(user_ids, args.user_events_prefix, out_folder, file_prefix)
     # Prepare tfidf features
-    get_events_features(user_events, out_folder)
+    get_events_features(user_events, out_folder, file_prefix)
 
 
