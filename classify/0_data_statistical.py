@@ -7,8 +7,8 @@ from collections import defaultdict
 CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
 
 def statistic(data_file, out_folder):
-    vimp1_raw, vimp2_raw = defaultdict(set), defaultdict(set)
-    cv1_raw, cv2_raw = defaultdict(set), defaultdict(set)
+    vimp1, vimp2 = defaultdict(set), defaultdict(set)
+    cv1, cv2 = defaultdict(set), defaultdict(set)
 
     with open(data_file, 'r') as in_f, \
             open(os.path.join(out_folder, 'statistic_data.csv'), 'w') as out_f:
@@ -22,18 +22,18 @@ def statistic(data_file, out_folder):
             cv1_flag, cv2_flag = int(tokens[4]), int(tokens[5])
 
             if vimp1_flag > 0:
-                vimp1_raw[cid].add(ad_id)
+                vimp1[cid].add(ad_id)
             elif vimp2_flag > 0:
-                vimp2_raw[cid].add(ad_id)
+                vimp2[cid].add(ad_id)
             elif cv1_flag > 0:
-                cv1_raw[cid].add(ad_id)
+                cv1[cid].add(ad_id)
             elif cv2_flag > 0:
-                cv2_raw[cid].add(ad_id)
+                cv2[cid].add(ad_id)
             else:
                 raise Exception("data error")
 
         # Just in case
-        cids = set(vimp1_raw) & set(vimp2_raw) & set(cv1_raw) & set(cv2_raw)
+        cids = set(vimp1) & set(vimp2) & set(cv1) & set(cv2)
         out_f.write("Total valid campaign #IDs : {} \n".format(len(cids)))
         out_f.write("\n")
         out_f.write("CampaignID\t#Positive\t#Negitive\t#Interact_User\n")
