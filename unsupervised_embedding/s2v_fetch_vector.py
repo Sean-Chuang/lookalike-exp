@@ -59,7 +59,6 @@ def read_event_emb(vector_file):
 
 
 def fetch_embedding(idf_map, events_vec, user_events, output_file):
-    output_file = os.path.join()
     with open(output_file, 'w') as out_f:
         for user in tqdm(user_events):
             events = user_events[user].split(' ')
