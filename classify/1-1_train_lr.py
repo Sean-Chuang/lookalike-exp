@@ -3,9 +3,11 @@ import os, sys
 from tqdm import tqdm
 import argparse
 import numpy as np
+
 import pickle
 from datetime import datetime
 
+from scipy.sparse import csr_matrix
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 
@@ -82,6 +84,7 @@ def read_data(input_data, user_ids):
                 
 # Train LR models
 def train(vimp, cv, user_features):
+    dim = user_features.shape[1]
     models = {}
     for cid in tqdm(cv):
         # Construct training data
@@ -89,16 +92,15 @@ def train(vimp, cv, user_features):
         neg = list(set(vimp[cid]))
         
         # Prepare train data
+        train_X = csr_matrix((len(pos) + len(neg), dim))
+        train_y = np.zeros(len(pos) + len(neg))
 
-        train_X, train_y = [], []
-        for uid in pos:
-            train_X.append(user_features[uid].toarray())
-            train_y.append(1)
-        for uid in neg:
-            train_X.append(user_features[uid].toarray())
-            train_y.append(0)
-        train_X = np.array(train_X)
-        train_y = np.array(train_y)
+        train_y[:len(pos)] = 1.0
+        for i, uid in enumerate(pos):
+            train_X[i, :] = user_features[uid]
+        for i, uid in enumerate(neg):
+            train_X[len(pos)+i, :] = user_features[uid]
+
         # Set up parameters
         # To follow the convention in spark.ml, C = 1 / (n * lambda)
         lr_param = {
@@ -117,20 +119,21 @@ def train(vimp, cv, user_features):
 
 # Apply fitted models to test data
 def test(models, vimp, cv, user_features, result):
+    dim = user_features.shape[1]
     with open(os.path.join('result', result), "w") as output_file:
         for cid in tqdm(cv):
             # Construct training data
             pos = list(set(cv[cid]))
             neg = list(set(vimp[cid]))
-            test_X, test_y = [], []
-            for uid in pos:
-                test_X.append(user_features[uid].toarray())
-                test_y.append(1)
-            for uid in neg:
-                test_X.append(user_features[uid].toarray())
-                test_y.append(0)
-            test_X = np.array(test_X)
-            test_y = np.array(test_y)
+            # Prepare test data
+            test_X = csr_matrix((len(pos) + len(neg), dim))
+            test_y = np.zeros(len(pos) + len(neg))
+
+            test_y[:len(pos)] = 1.0
+            for i, uid in enumerate(pos):
+                test_X[i, :] = user_features[uid]
+            for i, uid in enumerate(neg):
+                test_X[len(pos)+i, :] = user_features[uid]
 
             # Load trained models
             lr_model = models[cid]
