@@ -44,14 +44,16 @@ def statistic(data_file, out_folder, allow_campaign_type):
         cids = set(vimp1) & set(vimp2) & set(cv1) & set(cv2)
         out_f.write("Total valid campaign #IDs : {} \n".format(len(cids)))
         out_f.write("\n")
-        out_f.write("CampaignID\t#Positive\t#Negitive\t#Interact_User\n")
+        out_f.write("CampaignID\t#Pos(tr)\t#Neg(tr)\t#Pos(te)\t#Neg(te)\t#Interact_User\n")
         user_ids = set()
         for cid in cids:
-            pos = len(cv1[cid])
-            neg = len(vimp1[cid])
+            tr_pos = len(cv1[cid])
+            tr_neg = len(vimp1[cid])
+            te_pos = len(cv2[cid])
+            te_neg = len(vimp2[cid])
             user_ids |= (cv1[cid] | vimp1[cid] | cv2[cid] | vimp2[cid])
             user_interact = len((cv1[cid] | vimp1[cid]) & (cv2[cid] | vimp2[cid]))
-            out_f.write('{}\t{}\t{}\t{}\n'.format(cid, pos, neg, user_interact))
+            out_f.write('{}\t{}\t{}\t{}\t{}\t{}\n'.format(cid, tr_pos, tr_neg, te_pos, te_neg, user_interact))
         return user_ids
 
 
