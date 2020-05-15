@@ -30,7 +30,8 @@ def get_user_vector(user_emb_v1, user_emb_v2):
             vector = [float(x.split(":")[1]) for x in tmp[1].split(" ")]
             v2_data[uid] = vector
 
-    for uid in v1_data:
+    interset = set(v1_data[uid]) & set(v2_data[uid])
+    for uid in interset:
         luf[uid] = [v1_data[uid], v2_data[uid]]
 
     return luf
