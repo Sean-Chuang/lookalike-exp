@@ -59,10 +59,9 @@ def prepare_shrink_data(user_ids, user_events_prefix, out_folder, out_file_prefi
     events_file = os.path.join(out_folder, out_file_prefix + 'user_events.csv')
     user_events = {}
     file_list = glob.glob(user_events_prefix + '*')
-    for file_name in file_list:
-        print('---- processing [{}] file'.format(file_name))
+    for file_name in tqdm(file_list):
         with open(file_name, 'r') as in_f:
-            for line in tqdm(in_f):
+            for line in in_f:
                 tmp = line.strip().split(" ", 1)
                 uid = tmp[0]
                 events = tmp[1]
@@ -77,11 +76,12 @@ def prepare_shrink_data(user_ids, user_events_prefix, out_folder, out_file_prefi
 
 
 def prepare_shrink_user_embedding(user_ids, out_folder, user_embdding_list):
-    for emb_file in tqdm(user_embdding_list):
+    for emb_file in user_embdding_list:
         name = os.path.basename(emb_file)
+        print('---- processing [{}] file'.format(name))
         with open(emb_file, 'r') as in_f, \
             open(os.path.join(out_folder, name), 'w') as out_f:
-            for line in in_f:
+            for line in tqdm(in_f):
                 user_id = line.split('\t')[0]
                 if user_id in user_ids:
                     out_f.write(line)
