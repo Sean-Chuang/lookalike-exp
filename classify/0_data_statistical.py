@@ -75,6 +75,18 @@ def prepare_shrink_data(user_ids, user_events_prefix, out_folder, out_file_prefi
     return user_events
 
 
+def prepare_shrink_user_embedding(user_ids, out_folder, user_embdding_list):
+    for emb_file in tqdm(user_embdding_list):
+        name = os.nasename(emb_file)
+        with open(emb_file, 'r') as in_f, \
+            open(os.path.join(out_folder, name), 'w') as out_f:
+            for line in in_f:
+                user_id = line.split('\t')[0]
+                if user_id in user_ids:
+                    out_f.write(line)
+
+
+
 def get_events_features(user_events, out_folder, out_file_prefix):
     vectorizer = TfidfVectorizer(
                     max_features=20000,
@@ -101,6 +113,7 @@ if __name__ == '__main__':
     parser.add_argument("user_events_prefix", type=str, help="User events file prefix")
     parser.add_argument("--file_prefix", type=str, help="output file prefix", default=None)
     parser.add_argument("--campaign_type", type=str, help="campaign type (app/web/all)", default='all')
+    parser.add_argument("--user_embdding_files", type=list, help="user embedding file list", default=[])
     # parser.add_argument("--user_emb", type=str, default=None)
     args = parser.parse_args()
 
@@ -119,6 +132,7 @@ if __name__ == '__main__':
     user_ids = statistic(args.input_data, out_folder, allow_campaign_type)
     # Prepare user_events / user_emb file
     user_events = prepare_shrink_data(user_ids, args.user_events_prefix, out_folder, file_prefix)
+    prepare_shrink_user_embedding(user_ids, out_folder, args.user_embdding_files)
     # Prepare tfidf features
     get_events_features(user_events, out_folder, file_prefix)
 
