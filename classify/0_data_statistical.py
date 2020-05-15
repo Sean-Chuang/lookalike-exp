@@ -59,9 +59,10 @@ def prepare_shrink_data(user_ids, user_events_prefix, out_folder, out_file_prefi
     events_file = os.path.join(out_folder, out_file_prefix + 'user_events.csv')
     user_events = {}
     file_list = glob.glob(user_events_prefix + '*')
-    for file_name in tqdm(file_list):
+    for file_name in file_list:
+        print('---- processing [{}] file'.format(file_name))
         with open(file_name, 'r') as in_f:
-            for line in in_f:
+            for line in tqdm(in_f):
                 tmp = line.strip().split(" ", 1)
                 uid = tmp[0]
                 events = tmp[1]
@@ -113,7 +114,7 @@ if __name__ == '__main__':
     parser.add_argument("user_events_prefix", type=str, help="User events file prefix")
     parser.add_argument("--file_prefix", type=str, help="output file prefix", default=None)
     parser.add_argument("--campaign_type", type=str, help="campaign type (app/web/all)", default='all')
-    parser.add_argument("--user_embdding_files", type=list, nargs='+', help="user embedding file list", default=[])
+    parser.add_argument("--user_embdding_files", type=str, nargs='+', help="user embedding file list", default=[])
     # parser.add_argument("--user_emb", type=str, default=None)
     args = parser.parse_args()
 
@@ -132,7 +133,7 @@ if __name__ == '__main__':
     print('1. statistic ...')
     user_ids = statistic(args.input_data, out_folder, allow_campaign_type)
     # Prepare user_events / user_emb file
-    print('2. Process shrink data ...', args.user_embdding_files)
+    print('2. Process shrink data ...')
     user_events = prepare_shrink_data(user_ids, args.user_events_prefix, out_folder, file_prefix)
     print('3. Process embeddings file : ', args.user_embdding_files)
     prepare_shrink_user_embedding(user_ids, out_folder, args.user_embdding_files)
