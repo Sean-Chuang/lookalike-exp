@@ -19,7 +19,7 @@ def statistic(data_file, out_folder, allow_campaign_type):
             open(os.path.join(out_folder, 'data.csv'), 'w') as out_f1:
         for line in in_f:
             tokens = line.strip().split("\t")
-            type_id = tokens[0]
+            type_id = tokens[0].strip()
 
             if len(tokens) < 7 or type_id not in allow_campaign_type:
                 continue
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Create output folder
-    out_folder = os.path.join(CURRENT_PATH, 'train_data', args.data_name + '_' + args.campaign_type)
+    out_folder = os.path.join(CURRENT_PATH, 'train_data', args.data_name, args.campaign_type)
     os.makedirs(out_folder, exist_ok=True)
     file_prefix = args.file_prefix + '_' if args.file_prefix else ''
     # Prepare statistic file
