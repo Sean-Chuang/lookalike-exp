@@ -10,20 +10,24 @@ import numpy as np
 
 CURRENT_PATH = os.path.dirname(os.path.abspath(__file__))
 
-def statistic(data_file, out_folder):
+def statistic(data_file, out_folder, allow_campaign_type):
     vimp1, vimp2 = defaultdict(set), defaultdict(set)
     cv1, cv2 = defaultdict(set), defaultdict(set)
 
     with open(data_file, 'r') as in_f, \
-            open(os.path.join(out_folder, 'statistic_data.csv'), 'w') as out_f:
+            open(os.path.join(out_folder, 'statistic_data.csv'), 'w') as out_f, \
+            open(os.path.join(out_folder, 'data.csv'), 'w') as out_f1:
         for line in in_f:
             tokens = line.strip().split("\t")
+            type_id = tokens[0]
 
-            if len(tokens) < 6:
+            if len(tokens) < 7 or type_id not in allow_campaign_type:
                 continue
-            cid, ad_id = tokens[0], tokens[1]
-            vimp1_flag, vimp2_flag = int(tokens[2]), int(tokens[3])
-            cv1_flag, cv2_flag = int(tokens[4]), int(tokens[5])
+            out_f1.write('\t'.join(tokens[1:]) + '\n')
+
+            cid, ad_id = tokens[1], tokens[2]
+            vimp1_flag, vimp2_flag = int(tokens[3]), int(tokens[4])
+            cv1_flag, cv2_flag = int(tokens[5]), int(tokens[6])
 
             if vimp1_flag > 0:
                 vimp1[cid].add(ad_id)
@@ -96,15 +100,23 @@ if __name__ == '__main__':
     parser.add_argument("data_name", type=str, help="Data name (output folder name)")
     parser.add_argument("user_events_prefix", type=str, help="User events file prefix")
     parser.add_argument("--file_prefix", type=str, help="output file prefix", default=None)
+    parser.add_argument("--campaign_type", type=str, help="campaign type (app/web/all)", default='all')
     # parser.add_argument("--user_emb", type=str, default=None)
     args = parser.parse_args()
 
     # Create output folder
-    out_folder = os.path.join(CURRENT_PATH, 'train_data', args.data_name)
+    out_folder = os.path.join(CURRENT_PATH, 'train_data', args.data_name + '_' + args.campaign_type)
     os.makedirs(out_folder, exist_ok=True)
     file_prefix = args.file_prefix + '_' if args.file_prefix else ''
     # Prepare statistic file
-    user_ids = statistic(args.input_data, out_folder)
+    if args.campaign_type == 'app':
+        allow_campaign_type = ['appstore']
+    elif args.campaign_type == 'web':
+        allow_campaign_type = ['webview']
+    else:
+        allow_campaign_type = ['webview', 'appstore']
+    print('Allow campagin type', allow_campaign_type)
+    user_ids = statistic(args.input_data, out_folder, allow_campaign_type)
     # Prepare user_events / user_emb file
     user_events = prepare_shrink_data(user_ids, args.user_events_prefix, out_folder, file_prefix)
     # Prepare tfidf features
