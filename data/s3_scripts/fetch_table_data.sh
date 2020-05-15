@@ -10,6 +10,11 @@
 
 set -eu
 
+if [ "$#" -ne 2 ]; then
+    echo "[Usage] fetch_table_data.sh [Output_dir] [s3_bucket]"
+    exit 1
+fi
+
 dest="$1"
 key=$(dirname "$2/x")
 
