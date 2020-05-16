@@ -76,6 +76,7 @@ def get_allow_type(campaign_type):
         allow_campaign_type = ['webview']
     else:
         allow_campaign_type = ['webview', 'appstore']
+    return allow_campaign_type
 
 
 
@@ -94,7 +95,9 @@ if __name__ == '__main__':
     print('1. statistic ...')
     user_ids = set()
     for _type in ['all', 'web', 'app']:
-        user_ids |= statistic(args.input_data, out_folder, get_allow_type(_type))
+        type_folder = os.path.join(out_folder, _type)
+        os.makedirs(type_folder, exist_ok=True)
+        user_ids |= statistic(args.input_data, type_folder, get_allow_type(_type))
     # Prepare user_events / user_emb file
     print('2. Process embeddings file : ', args.user_embdding_files)
     prepare_shrink_user_embedding(user_ids, out_folder, args.user_embdding_files)
