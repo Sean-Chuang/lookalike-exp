@@ -83,7 +83,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser("python3 0_data_statistical.py")
     parser.add_argument("input_data", type=str, help="Input data")
     parser.add_argument("data_name", type=str, help="Data name (output folder name)")
-    parser.add_argument("--user_embdding_files", type=str, nargs='+', help="user embedding file list")
+    parser.add_argument("--user_embdding_files", type=str, nargs='+', help="user embedding file list", default=[])
     # parser.add_argument("--user_emb", type=str, default=None)
     args = parser.parse_args()
 
@@ -92,6 +92,7 @@ if __name__ == '__main__':
     os.makedirs(out_folder, exist_ok=True)
 
     print('1. statistic ...')
+    user_ids = set()
     for _type in ['all', 'web', 'app']:
         user_ids |= statistic(args.input_data, out_folder, get_allow_type(_type))
     # Prepare user_events / user_emb file

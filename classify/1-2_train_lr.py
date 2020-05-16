@@ -145,7 +145,7 @@ def get_t():
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser("python3 train_lr.py")
+    parser = argparse.ArgumentParser("python3 1-2_train_lr.py")
     parser.add_argument("input_data", type=str, help="Input data")
     parser.add_argument("result", type=str, help="Result")
     parser.add_argument("emb", type=str, help="User emb.")
