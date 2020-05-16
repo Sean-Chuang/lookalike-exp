@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os, sys
+from tqdm import tqdm
 import argparse
 import numpy as np
 from datetime import datetime
@@ -79,7 +80,7 @@ def read_data(input_data, user_ids):
 def train(vimp, cv, luf):
     dim = 128
     models = {}
-    for cid in cv:
+    for cid in tqdm(cv):
         # Construct training data
         pos = list(set(cv[cid]))
         neg = list(set(vimp[cid]))
@@ -109,7 +110,7 @@ def train(vimp, cv, luf):
 def test(models, vimp, cv, luf, result):
     dim = 128
     with open(os.path.join('result', result), "w") as output_file:
-        for cid in cv:
+        for cid in tqdm(cv):
             # Construct training data
             pos = list(set(cv[cid]))
             neg = list(set(vimp[cid]))
@@ -149,6 +150,7 @@ if __name__ == "__main__":
     parser.add_argument("input_data", type=str, help="Input data")
     parser.add_argument("result", type=str, help="Result")
     parser.add_argument("emb", type=str, help="User emb.")
+    os.makedirs('result', exist_ok=True)
     args = parser.parse_args()
     print(f"[{get_t()}] reading embdding")
     luf = get_user_vector(args.emb)
