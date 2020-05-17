@@ -15,7 +15,7 @@ rm -f ${bulk_data}
 			smartad-dmp/warehouse/ml/exp_libsvm/type=deep_lookalike/dt=${dt}/
 
 outdir="./data/model/"
-mkdir -p outdir
+mkdir -p ${outdir}
 # Train VAE
 ./unsupervised_embedding/train_VAE.py ${data_prefix} ${vocab} ${outdir}/${dt}.luf_vae.vec
 
