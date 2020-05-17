@@ -14,11 +14,12 @@ rm -f ${bulk_data}
 ./data/s3_scripts/fetch_table_data.sh ./data/${dt}/ae_user_features \
 			smartad-dmp/warehouse/ml/exp_libsvm/type=deep_lookalike/dt=${dt}/
 
+outdir="./data/model/"
+mkdir -p outdir
 # Train VAE
-./unsupervised_embedding/train_VAE.py ${data_prefix} ${vocab} ./data/model/${dt}.luf_vae.vec
+./unsupervised_embedding/train_VAE.py ${data_prefix} ${vocab} ${outdir}/${dt}.luf_vae.vec
 
 # Train AE
 data="./data/${dt}/ae_user_features/merged.data"
-outdir="./data/model/"
 ./unsupervised_embedding/train_AE.py ${data} ${outdir} 18 1000
-mv ${outdir}luf.vec ${outdir}${dt}.luf_ae.vec
+mv ${outdir}luf.vec ${outdir}/${dt}.luf_ae.vec

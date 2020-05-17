@@ -132,7 +132,7 @@ def test(models, vimp, cv, luf, result):
             # Calculate F1
             f1_f = f1_score(y_true, z_f)
             # Calculate AP
-            sc_f = pipe_f.decision_function(Xf)
+            sc_f = pipe_f.decision_function(X)
             ap_f = average_precision_score(y_true, sc_f)
             # Print result
             s_f = "\t".join([str(r) for r in result_f])
