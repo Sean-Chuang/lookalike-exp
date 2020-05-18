@@ -18,7 +18,7 @@ def fetch_embedding(model_file, data_prefix, output_file):
                     tmp = line.strip().split(' ', 1)
                     user_id = tmp[0]
                     vector = model.embed_sentence(tmp[1])[0]
-                    vector_str = [str(i) + ':' + f'{v:.3f}' for i,v in enumerate(vector)]
+                    vector_str = [str(i) + ':' + f'{v:.4f}' for i,v in enumerate(vector)]
                     out_f.write(user_id + '\t' + ' '.join(vector_str) + '\n')
 
 
