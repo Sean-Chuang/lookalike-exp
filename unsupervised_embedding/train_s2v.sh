@@ -3,7 +3,9 @@ dt=$1
 input_file="/mnt1/train/lookalike-exp/data/${dt}/s2v_tr.txt"
 echo "intput file ${input_file}"
 ft="/mnt1/train/lookalike-exp/unsupervised_embedding/bin/fasttext"
-$ft sent2vec -input ${input_file} -output /mnt1/train/lookalike-exp/data/model/${dt}_s2v_model \
+out_dir="/mnt1/train/lookalike-exp/data/model"
+mkdir -p $out_dir
+$ft sent2vec -input ${input_file} -output ${out_dir}/${dt}_s2v_model \
 	-minCount 3 \
 	-dim 128 \
 	-epoch 20 \
