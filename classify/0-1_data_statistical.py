@@ -98,6 +98,10 @@ if __name__ == '__main__':
         type_folder = os.path.join(out_folder, _type)
         os.makedirs(type_folder, exist_ok=True)
         user_ids |= statistic(args.input_data, type_folder, get_allow_type(_type))
+    with open(os.path.join(out_folder, 'user.list'), 'w') as out_f:
+        for uid in user_ids:
+            out_f.write(uid + '\n')
+
     # Prepare user_events / user_emb file
     print('2. Process embeddings file : ', args.user_embdding_files)
     prepare_shrink_user_embedding(user_ids, out_folder, args.user_embdding_files)
