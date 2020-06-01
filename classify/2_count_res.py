@@ -13,10 +13,12 @@ for line in open(result_file):
 
     f1_score.append(float(tokens[5]))
     ap_score.append(float(tokens[6]))
+    rank_ap_score.append(float(tokens[7]))
 
 f1_score, ap_score = np.array(f1_score), np.array(ap_score)
 
 print(f"F1: mean = {np.mean(f1_score):.3f}, sd = {np.std(f1_score):.3f}")
 print(f"AP: mean = {np.mean(ap_score):.3f}, sd = {np.std(ap_score):.3f}")
+print(f"AP: mean = {np.mean(rank_ap_score):.3f}, sd = {np.std(rank_ap_score):.3f}")
 print(f"[TP TN FP FN]: {cnt}")
 

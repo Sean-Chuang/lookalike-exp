@@ -124,6 +124,7 @@ def test(models, vimp, cv, luf, result):
             # Load trained models
             pipe_f = models[cid]
             z_f = pipe_f.predict(X)
+            z_f_proba = pipe_f.predict_proba(X)
             # Count results
             result_f = [np.count_nonzero(y_true * z_f),
                         np.count_nonzero((1.0 - y_true) * (1.0 - z_f)),
@@ -134,9 +135,12 @@ def test(models, vimp, cv, luf, result):
             # Calculate AP
             sc_f = pipe_f.decision_function(X)
             ap_f = average_precision_score(y_true, sc_f)
+            r = sorted(zip(y_true, z_f_proba), key=lambda x: x[1], reverse=True)
+            r_res = zip(*r)
+            rank_ap_f = average_precision(r_res)
             # Print result
             s_f = "\t".join([str(r) for r in result_f])
-            print(f"{cid}\t{s_f}\t{f1_f:.6f}\t{ap_f:.6f}",
+            print(f"{cid}\t{s_f}\t{f1_f:.6f}\t{ap_f:.6f}\t{rank_ap_f:.6f}",
                   file=output_file)
 
 
@@ -144,6 +148,23 @@ def test(models, vimp, cv, luf, result):
 def get_t():
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
+# ranking map
+def average_precision(r, step=False):
+    r = np.asarray(r) != 0
+    if step:
+        out = [precision_at_k(r, int(r.size * k)) for k in np.arange(0.1, 1.1, 0.1)]
+    else:
+        out = [precision_at_k(r, k + 1) for k in range(r.size) if r[k]]
+    if not out:
+        return 0.
+    return np.mean(out)
+
+def precision_at_k(r, k):
+    assert k >= 1
+    r = np.asarray(r)[:k] != 0
+    if r.size != k:
+        raise ValueError('Relevance score length < k')
+    return np.mean(r)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("python3 1-2_train_lr.py")
