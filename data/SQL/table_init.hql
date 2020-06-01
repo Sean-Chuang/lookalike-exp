@@ -72,3 +72,23 @@ lines terminated by '\n'
 stored as textfile
 location 's3://smartad-dmp/warehouse/user/seanchuang/tmp_fasttext_training_set'
 ;
+
+create table if not exists z_seanchuang.tmp_daily_lal_campaign_info (
+    advertiser_id bigint,
+    owner_company string,
+    campaign_id bigint,
+    advertiser_name string,
+    campaign_name string,
+    click_action string,
+    bid_type string,
+    daily_budget double,
+    monthly_budget double,
+    targeting string,
+    partners_url string,
+    internal_version string
+ )
+partitioned by (dt string)
+row format delimited fields terminated by '\t'
+lines terminated by '\n'
+stored as textfile
+location 's3://smartad-dmp/warehouse/user/seanchuang/tmp_daily_lal_campaign_info';
