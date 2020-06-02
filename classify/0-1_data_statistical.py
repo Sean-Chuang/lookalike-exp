@@ -56,6 +56,25 @@ def statistic(data_file, out_folder, allow_campaign_type):
             out_f.write('{}\t{}\t{}\t{}\t{}\t{}\n'.format(cid, tr_pos, tr_neg, te_pos, te_neg, user_interact))
         return user_ids
 
+
+def prepare_user_active(user_ids, out_folder, user_active_f):
+    user_active_weight = {}
+
+    with open(user_active_f, 'r') as in_f:
+        for line in in_f:
+            tmp = line.strip().split("\t")
+            uid = tmp[0]
+            count = int(tmp[1])
+            user_active_weight[uid] = 1 + math.log(count)
+
+    max_value = max(list(user_active_weight.values()))
+
+    with open(os.path.join(out_folder, 'user_active_weight.csv'), 'w') as out_f
+        for uid in user_ids:
+            if uid in user_active_weight:
+                print(f"{uid}\t{user_active_weight[uid]/max_value:.6f}", file=out_f)
+
+
 def prepare_shrink_user_embedding(user_ids, out_folder, user_embdding_list):
     for emb_file in user_embdding_list:
         name = os.path.basename(emb_file)
@@ -84,6 +103,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser("python3 0_data_statistical.py")
     parser.add_argument("input_data", type=str, help="Input data")
     parser.add_argument("data_name", type=str, help="Data name (output folder name)")
+    parser.add_argument("--user_active_files", type=str, help="user active file list")
     parser.add_argument("--user_embdding_files", type=str, nargs='+', help="user embedding file list", default=[])
     # parser.add_argument("--user_emb", type=str, default=None)
     args = parser.parse_args()
@@ -102,8 +122,12 @@ if __name__ == '__main__':
         for uid in user_ids:
             out_f.write(uid + '\n')
 
+    # Prepare user_active file
+    print('2. Process user active file : ', args.user_active_files)
+    prepare_user_active(user_ids, out_folder, args.user_active_files)
+
     # Prepare user_events / user_emb file
-    print('2. Process embeddings file : ', args.user_embdding_files)
+    print('3. Process embeddings file : ', args.user_embdding_files)
     prepare_shrink_user_embedding(user_ids, out_folder, args.user_embdding_files)
 
 
