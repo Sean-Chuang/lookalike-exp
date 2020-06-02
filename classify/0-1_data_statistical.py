@@ -71,8 +71,8 @@ def prepare_user_active(user_ids, out_folder, user_active_f):
     max_value = max(list(user_active_weight.values()))
 
     with open(os.path.join(out_folder, 'user_active_weight.csv'), 'w') as out_f:
-        for uid in user_ids:
-            if uid in user_active_weight:
+        for uid in user_active_weight:
+            if uid in user_ids:
                 print(f"{uid}\t{user_active_weight[uid]/max_value:.6f}", file=out_f)
 
 
