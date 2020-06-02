@@ -28,6 +28,8 @@ tag="t_0524_0525"
 			smartad-dmp/warehouse/ml/tmp_fasttext_training_set/dt=${dt}
 ./lookalike-exp/data/s3_scripts/fetch_table_data.sh te_data/${tag}/ \
 			smartad-dmp/warehouse/user/seanchuang/test_lal_offline_data/dt=${tag}/
+./lookalike-exp/data/s3_scripts/fetch_table_data.sh user_active/${dt}/ \
+			smartad-dmp/warehouse/user/seanchuang/tmp_user_active_count/dt=${dt}
 mkdir "model"
 
 # Process training data
@@ -72,7 +74,8 @@ du -khs ${glove_model}.txt
 
 # 1. process test data for training LR
 cd /mnt1/train
-./lookalike-exp/classify/0-1_data_statistical.py te_data/${tag}/merged.data ${tag}
+./lookalike-exp/classify/0-1_data_statistical.py te_data/${tag}/merged.data ${tag} \
+	--user_active_files=user_active/${dt}/merged.data
 
 # 2. fetch vector (FT)
 ft_user_vec="ft.org.te.vec"

@@ -25,6 +25,18 @@ def get_user_vector(user_emb):
 
     return v_data
 
+# Read user active
+def get_user_active(user_active):
+    active_score = {}
+
+    with open(user_active) as in_f:
+        for line in in_f:
+            tmp = line.strip().split("\t")
+            uid = tmp[0]
+            score = float(tmp[1])
+            active_score[uid] = score
+
+    return active_score
 
 # Read data
 def read_data(input_data, user_ids):
@@ -107,7 +119,7 @@ def train(vimp, cv, luf):
 
 
 # Apply fitted models to test data
-def test(models, vimp, cv, luf, result):
+def test(models, vimp, cv, luf, active_s, result):
     dim = 128
     with open(os.path.join('result', result), "w") as output_file:
         for cid in tqdm(cv):
@@ -115,12 +127,15 @@ def test(models, vimp, cv, luf, result):
             pos = list(set(cv[cid]))
             neg = list(set(vimp[cid]))
             X = np.empty((len(pos) + len(neg), dim))
+            active_score = np.zeros(len(pos) + len(neg))
             y_true = np.zeros(len(pos) + len(neg))
             y_true[:len(pos)] = 1.0
             for i, a in enumerate(pos):
                 X[i, :] = luf[a]
+                active_score[i] = active_s[a]
             for i, a in enumerate(neg):
                 X[len(pos) + i, :] = luf[a]
+                active_score[len(pos) + i] = active_s[a]
             # Load trained models
             pipe_f = models[cid]
             z_f = pipe_f.predict(X)
@@ -135,7 +150,7 @@ def test(models, vimp, cv, luf, result):
             # Calculate AP
             sc_f = pipe_f.decision_function(X)
             ap_f = average_precision_score(y_true, sc_f)
-            r = sorted(zip(y_true, z_f_proba), key=lambda x: x[1], reverse=True)
+            r = sorted(zip(y_true, z_f_proba * active_score), key=lambda x: x[1], reverse=True)
             r_res, _ = zip(*r)
             rank_ap_f = average_precision(r_res)
             # Print result
@@ -171,15 +186,18 @@ if __name__ == "__main__":
     parser.add_argument("input_data", type=str, help="Input data")
     parser.add_argument("result", type=str, help="Result")
     parser.add_argument("emb", type=str, help="User emb.")
+    parser.add_argument("active", type=str, help="User active.")
     os.makedirs('result', exist_ok=True)
     args = parser.parse_args()
     print(f"[{get_t()}] reading embdding")
     luf = get_user_vector(args.emb)
+    print(f"[{get_t()}] reading user active")
+    active_score = get_user_active(args.active)
     print(f"[{get_t()}] reading data")
     vimp1, vimp2, cv1, cv2 = read_data(args.input_data, set(luf.keys()))
     print(f"[{get_t()}] training")
     models = train(vimp1, cv1, luf)
     print(f"[{get_t()}] test")
-    test(models, vimp2, cv2, luf, args.result)
+    test(models, vimp2, cv2, luf, active_score, args.result)
     print(f"[{get_t()}] done")
 
