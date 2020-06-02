@@ -124,7 +124,7 @@ def test(models, vimp, cv, luf, result):
             # Load trained models
             pipe_f = models[cid]
             z_f = pipe_f.predict(X)
-            z_f_proba = pipe_f.predict_proba(X)
+            z_f_proba = pipe_f.predict_proba(X)[:, 1]
             # Count results
             result_f = [np.count_nonzero(y_true * z_f),
                         np.count_nonzero((1.0 - y_true) * (1.0 - z_f)),
@@ -136,7 +136,7 @@ def test(models, vimp, cv, luf, result):
             sc_f = pipe_f.decision_function(X)
             ap_f = average_precision_score(y_true, sc_f)
             r = sorted(zip(y_true, z_f_proba), key=lambda x: x[1], reverse=True)
-            r_res = zip(*r)
+            r_res, _ = zip(*r)
             rank_ap_f = average_precision(r_res)
             # Print result
             s_f = "\t".join([str(r) for r in result_f])
