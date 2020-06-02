@@ -121,6 +121,7 @@ def train(vimp, cv, luf):
 # Apply fitted models to test data
 def test(models, vimp, cv, luf, active_s, result):
     dim = 128
+    default_active_score = 0.01
     with open(os.path.join('result', result), "w") as output_file:
         for cid in tqdm(cv):
             # Construct training data
@@ -132,10 +133,10 @@ def test(models, vimp, cv, luf, active_s, result):
             y_true[:len(pos)] = 1.0
             for i, a in enumerate(pos):
                 X[i, :] = luf[a]
-                active_score[i] = active_s[a]
+                active_score[i] = active_s.get(a, default_active_score)
             for i, a in enumerate(neg):
                 X[len(pos) + i, :] = luf[a]
-                active_score[len(pos) + i] = active_s[a]
+                active_score[len(pos) + i] = active_s.get(a, default_active_score)
             # Load trained models
             pipe_f = models[cid]
             z_f = pipe_f.predict(X)
