@@ -45,28 +45,59 @@ def analysis(data):
         if dt not in campaign_data[campaign_id]:
             campaign_data[campaign_id][dt] = {'vimp': vimp, 'sales': sales, 'click': click, 'cv':cv, 'vctr':vctr, 'cvr':cvr, 'cpc':cpc, 'cpa':cpa if cpa != 'Infinity' else None}
 
-
+    VAE_date = '05-12'
+    FT_date = '05-23'
+    metrics = ['sales', 'vimp', 'click', 'cv', 'vctr', 'cvr', 'cpc', 'cpa']
+    res = defaultdict(list)
     for campaign_id in campaign_data:
-        df = pd.DataFrame.from_dict(campaign_data[campaign_id], orient='index',
-                            columns=['vimp', 'sales', 'click', 'cv', 'vctr', 'cvr', 'cpc', 'cpa'])
-        print(df)
-        # filled_markers = ('o', 'v', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'd', 'P', 'X')
-        # sns.lineplot(data=df, markers=filled_markers, dashes=False, linewidth=2.5)
-        fig, axs = plt.subplots(2,2)
-        sns.lineplot(data=df[['vimp', 'sales']], palette="tab10", linewidth=2.5, ax=axs[0,0])
-        sns.lineplot(data=df[['click', 'cpa']], palette="tab10", linewidth=2.5, ax=axs[0,1])
-        sns.lineplot(data=df[['cpc', 'cv']], palette="tab10", linewidth=2.5, ax=axs[1,0])
-        sns.lineplot(data=df[['vctr', 'cvr']], palette="tab10", linewidth=2.5, ax=axs[1,1])
-        for ax in fig.axes:
-            # plt.xticks(rotation=45, horizontalalignment='right', fontweight='light')
-            plt.setp(ax.get_xticklabels(), rotation=45)
+        vae_metric = defaultdict(list)
+        ft_metric = defaultdict(list)
+        for dt in campaign_data[campaign_id]:
+            if VAE_date <= dt < FT_date:
+                for metric in metrics:
+                    if campaign_data[campaign_id][dt][metric]:  
+                        vae_metric[metric].append(campaign_data[campaign_id][dt][metric])
+            elif dt >= FT_date:
+                for metric in metrics:
+                    if campaign_data[campaign_id][dt][metric]:
+                        ft_metric[metric].append(campaign_data[campaign_id][dt][metric])
+        
+        for metric in metrics:
+            vae = np.mean(vae_metric[metric])
+            ft = np.mean(ft_metric[metric])
+            if len(vae_metric[metric]) == 0 or len(ft_metric[metric]) == 0:
+                res[campaign_id].extend([vae, ft, 'N/A'])
+            else:
+                res[campaign_id].extend([vae, ft, 'v1' if vae > ft else 'v2'])
 
-        plt.show()
-        break
+    df = pd.DataFrame.from_dict(res, orient='index')
+    df.to_csv('obj/analysis.csv', sep='\t', float_format='%.3f')
+
+
+
+
+
+
+        # df = pd.DataFrame.from_dict(campaign_data[campaign_id], orient='index',
+        #                     columns=['vimp', 'sales', 'click', 'cv', 'vctr', 'cvr', 'cpc', 'cpa'])
+        # print(df)
+        # # filled_markers = ('o', 'v', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'd', 'P', 'X')
+        # # sns.lineplot(data=df, markers=filled_markers, dashes=False, linewidth=2.5)
+        # fig, axs = plt.subplots(1,3)
+        # sns.lineplot(data=df[['vimp', 'sales', 'cpa']], palette="tab10", linewidth=2.5, ax=axs[0,0])
+        # sns.lineplot(data=df[['click', 'cv', 'cpc', ]], palette="tab10", linewidth=2.5, ax=axs[0,1])
+        # sns.lineplot(data=df[['vctr', 'cvr']], palette="tab10", linewidth=2.5, ax=axs[0,2])
+        # for ax in fig.axes:
+        #     # plt.xticks(rotation=45, horizontalalignment='right', fontweight='light')
+        #     plt.setp(ax.get_xticklabels(), rotation=45)
+
+        # plt.show()
+        # break
 
 
 if __name__ == '__main__':
     b_data = '2020-05-10'
-    # data = query_all_campaign(b_data)
+    # query_all_campaign(b_data)
     data = load_obj(b_data)
     analysis(data)
+    
